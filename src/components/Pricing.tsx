@@ -1,45 +1,133 @@
-export default function Pricing() {
-  const plans = [
-    {
-      name: "Starter",
-      price: "$19",
-      period: "/month",
-      features: [
-        "5 website audits per month",
-        "PDF reports",
-        "Email support",
-      ],
-      cta: "Start Free Trial",
-      popular: false,
-    },
-    {
-      name: "Growth",
-      price: "$49",
-      period: "/month",
-      features: [
-        "25 website audits per month",
-        "PDF reports with your branding",
-        "Priority email support",
-        "Weekly scheduled scans",
-      ],
-      cta: "Start Free Trial",
-      popular: true,
-    },
-    {
-      name: "Agency",
-      price: "$99",
-      period: "/month",
-      features: [
-        "Unlimited audits",
-        "White-label PDF reports",
-        "API access",
-        "Dedicated support",
-        "Client dashboard",
-      ],
-      cta: "Start Free Trial",
-      popular: false,
-    },
-  ];
+// ============================================
+// Pricing Section
+// Plan-aware: shows different CTA based on auth and current plan
+// ============================================
+
+"use client";
+
+import { useState } from "react";
+
+interface PricingProps {
+  /** If provided, user is logged in */
+  currentPlan?: string | null;
+}
+
+const PLANS = [
+  {
+    name: "Starter",
+    key: "starter",
+    price: "$19",
+    period: "/month",
+    features: [
+      "5 website audits per month",
+      "PDF reports",
+      "Email support",
+    ],
+    popular: false,
+  },
+  {
+    name: "Growth",
+    key: "growth",
+    price: "$49",
+    period: "/month",
+    features: [
+      "25 website audits per month",
+      "PDF reports with your branding",
+      "Priority email support",
+      "Weekly scheduled scans",
+    ],
+    popular: true,
+  },
+  {
+    name: "Agency",
+    key: "agency",
+    price: "$99",
+    period: "/month",
+    features: [
+      "Unlimited audits",
+      "White-label PDF reports",
+      "API access",
+      "Dedicated support",
+      "Client dashboard",
+    ],
+    popular: false,
+  },
+];
+
+// Maps plan keys → env var names for variant IDs
+const VARIANT_ENV_MAP: Record<string, string> = {
+  starter: "NEXT_PUBLIC_LS_STARTER_VARIANT_ID",
+  growth: "NEXT_PUBLIC_LS_GROWTH_VARIANT_ID",
+  agency: "NEXT_PUBLIC_LS_AGENCY_VARIANT_ID",
+};
+
+function getVariantId(planKey: string): string {
+  const envKey = VARIANT_ENV_MAP[planKey];
+  if (!envKey) return "";
+  // Client-side env vars must start with NEXT_PUBLIC_
+  if (typeof window !== "undefined") {
+    return (process.env[envKey] as string) || "";
+  }
+  return "";
+}
+
+export default function Pricing({ currentPlan }: PricingProps) {
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+  async function handleCheckout(planKey: string) {
+    // If not logged in, send to signup
+    if (!currentPlan) {
+      window.location.href = "/signup";
+      return;
+    }
+
+    // If already on this plan
+    if (currentPlan === planKey) return;
+
+    const variantId = getVariantId(planKey);
+    if (!variantId) {
+      // Fallback: send to signup if variant IDs aren't configured
+      window.location.href = "/signup";
+      return;
+    }
+
+    setLoadingPlan(planKey);
+
+    try {
+      const res = await fetch("/api/lemonsqueezy/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ variantId }),
+      });
+
+      const data = await res.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error("No checkout URL returned");
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+    } finally {
+      setLoadingPlan(null);
+    }
+  }
+
+  function getCtaText(planKey: string): string {
+    if (!currentPlan || currentPlan === "free") return "Start Free Trial";
+    if (currentPlan === planKey) return "Current Plan";
+    // Determine if upgrade or downgrade
+    const planOrder = ["free", "starter", "growth", "agency"];
+    const currentIdx = planOrder.indexOf(currentPlan);
+    const targetIdx = planOrder.indexOf(planKey);
+    if (targetIdx > currentIdx) return "Upgrade";
+    return "Switch Plan";
+  }
+
+  function isCurrentPlan(planKey: string): boolean {
+    return currentPlan === planKey;
+  }
 
   return (
     <section id="pricing" className="py-20 sm:py-28 bg-gray-50">
@@ -54,7 +142,7 @@ export default function Pricing() {
         </div>
 
         <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {plans.map((plan) => (
+          {PLANS.map((plan) => (
             <div
               key={plan.name}
               className={`relative rounded-2xl bg-white p-8 shadow-sm flex flex-col ${
@@ -66,6 +154,12 @@ export default function Pricing() {
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-primary-500 px-4 py-1 text-xs font-bold text-white uppercase tracking-wide">
                   Most Popular
+                </div>
+              )}
+
+              {isCurrentPlan(plan.key) && (
+                <div className="absolute -top-4 right-4 rounded-full bg-green-500 px-3 py-1 text-xs font-bold text-white uppercase tracking-wide">
+                  Current
                 </div>
               )}
 
@@ -99,16 +193,19 @@ export default function Pricing() {
                 ))}
               </ul>
 
-              <a
-                href="#waitlist"
-                className={`mt-8 block w-full rounded-xl py-3 text-center text-sm font-semibold transition-colors ${
-                  plan.popular
+              <button
+                onClick={() => handleCheckout(plan.key)}
+                disabled={isCurrentPlan(plan.key) || loadingPlan === plan.key}
+                className={`mt-8 block w-full rounded-xl py-3 text-center text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                  isCurrentPlan(plan.key)
+                    ? "bg-gray-100 text-slate-500 cursor-not-allowed"
+                    : plan.popular
                     ? "bg-primary-500 text-white hover:bg-primary-600 shadow-sm"
                     : "bg-slate-900 text-white hover:bg-slate-800"
                 }`}
               >
-                {plan.cta}
-              </a>
+                {loadingPlan === plan.key ? "Redirecting..." : getCtaText(plan.key)}
+              </button>
             </div>
           ))}
         </div>

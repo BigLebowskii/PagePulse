@@ -28,6 +28,8 @@ export default async function SettingsPage() {
           plan: profile?.plan || "free",
           audits_used: profile?.audits_used_this_month || 0,
           audits_limit: profile?.audits_limit || 1,
+          subscription_status: profile?.subscription_status || null,
+          lemonsqueezy_subscription_id: profile?.lemonsqueezy_subscription_id || null,
         }}
       />
     </div>

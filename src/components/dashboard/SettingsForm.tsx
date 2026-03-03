@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/ui/Toast";
+import ManageSubscription from "@/components/dashboard/ManageSubscription";
 
 interface SettingsFormProps {
   profile: {
@@ -11,6 +12,8 @@ interface SettingsFormProps {
     plan: string;
     audits_used: number;
     audits_limit: number;
+    subscription_status: string | null;
+    lemonsqueezy_subscription_id: string | null;
   };
 }
 
@@ -41,6 +44,7 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
   };
 
   const usagePercent = Math.min(100, (profile.audits_used / profile.audits_limit) * 100);
+  const hasSubscription = !!profile.lemonsqueezy_subscription_id;
 
   return (
     <div className="mt-6 space-y-6">
@@ -88,6 +92,21 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           <span className="inline-flex items-center rounded-full bg-primary-100 px-3 py-1 text-sm font-semibold text-primary-700 capitalize">
             {profile.plan} Plan
           </span>
+          {profile.subscription_status && profile.subscription_status !== "none" && (
+            <span
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                profile.subscription_status === "active"
+                  ? "bg-green-50 text-green-700"
+                  : profile.subscription_status === "cancelled"
+                  ? "bg-amber-50 text-amber-700"
+                  : profile.subscription_status === "past_due"
+                  ? "bg-red-50 text-red-700"
+                  : "bg-gray-50 text-gray-700"
+              }`}
+            >
+              {profile.subscription_status}
+            </span>
+          )}
         </div>
 
         <div className="mb-4">
@@ -105,12 +124,18 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           </div>
         </div>
 
-        <a
-          href="/#pricing"
-          className="inline-flex items-center rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 transition-colors"
-        >
-          Upgrade Plan
-        </a>
+        <div className="flex items-center gap-3">
+          {hasSubscription ? (
+            <ManageSubscription />
+          ) : (
+            <a
+              href="/#pricing"
+              className="inline-flex items-center rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 transition-colors"
+            >
+              Upgrade Plan
+            </a>
+          )}
+        </div>
       </div>
 
       {/* Danger Zone */}

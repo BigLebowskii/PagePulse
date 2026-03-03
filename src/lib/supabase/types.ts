@@ -72,6 +72,8 @@ export interface Database {
           plan: Plan;
           lemonsqueezy_customer_id: string | null;
           lemonsqueezy_subscription_id: string | null;
+          subscription_status: string | null;
+          current_period_end: string | null;
           audits_used_this_month: number;
           audits_limit: number;
           created_at: string;
@@ -85,6 +87,8 @@ export interface Database {
           plan?: Plan;
           lemonsqueezy_customer_id?: string | null;
           lemonsqueezy_subscription_id?: string | null;
+          subscription_status?: string | null;
+          current_period_end?: string | null;
           audits_used_this_month?: number;
           audits_limit?: number;
           created_at?: string;
@@ -98,6 +102,8 @@ export interface Database {
           plan?: Plan;
           lemonsqueezy_customer_id?: string | null;
           lemonsqueezy_subscription_id?: string | null;
+          subscription_status?: string | null;
+          current_period_end?: string | null;
           audits_used_this_month?: number;
           audits_limit?: number;
           created_at?: string;

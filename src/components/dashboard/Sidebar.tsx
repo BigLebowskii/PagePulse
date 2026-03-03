@@ -126,6 +126,14 @@ export default function Sidebar({ plan, auditsUsed, auditsLimit, open, onClose }
                 style={{ width: `${Math.min(100, (auditsUsed / auditsLimit) * 100)}%` }}
               />
             </div>
+            {(plan === "free" || plan === "starter") && (
+              <a
+                href="/dashboard/settings"
+                className="mt-2 block text-center text-xs font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+              >
+                Upgrade Plan
+              </a>
+            )}
           </div>
         </div>
       </aside>

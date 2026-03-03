@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import ScoreCircle from "@/components/ui/ScoreCircle";
 import GradeBadge from "@/components/ui/GradeBadge";
 import QuickAuditForm from "@/components/dashboard/QuickAuditForm";
+import UpgradeBanner from "@/components/dashboard/UpgradeBanner";
 
 function gradeFromScore(score: number): string {
   if (score >= 90) return "A";
@@ -50,6 +51,12 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <UpgradeBanner
+        auditsUsed={profile?.audits_used_this_month || 0}
+        auditsLimit={profile?.audits_limit || 1}
+        plan={profile?.plan || "free"}
+      />
+
       <QuickAuditForm />
 
       {/* Stats Row */}
