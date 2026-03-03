@@ -14,14 +14,20 @@ interface SettingsFormProps {
     audits_limit: number;
     subscription_status: string | null;
     lemonsqueezy_subscription_id: string | null;
+    company_name: string | null;
+    brand_color: string | null;
   };
 }
 
 export default function SettingsForm({ profile }: SettingsFormProps) {
   const [fullName, setFullName] = useState(profile.full_name);
+  const [companyName, setCompanyName] = useState(profile.company_name || "");
+  const [brandColor, setBrandColor] = useState(profile.brand_color || "#2563EB");
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { toast } = useToast();
+
+  const isAgency = profile.plan === "agency";
 
   const handleSave = async () => {
     setSaving(true);
@@ -30,9 +36,15 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
 
     if (!user) return;
 
+    const updateData: Record<string, string | null> = { full_name: fullName };
+    if (isAgency) {
+      updateData.company_name = companyName || null;
+      updateData.brand_color = brandColor;
+    }
+
     const { error } = await supabase
       .from("profiles")
-      .update({ full_name: fullName })
+      .update(updateData)
       .eq("id", user.id);
 
     if (error) {
@@ -83,6 +95,67 @@ export default function SettingsForm({ profile }: SettingsFormProps) {
           </button>
         </div>
       </div>
+
+      {/* White-Label Branding (Agency Plan Only) */}
+      {isAgency && (
+        <div className="rounded-2xl bg-white border border-gray-100 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-base font-semibold text-slate-900">White-Label Branding</h2>
+            <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-semibold text-purple-700">
+              Agency
+            </span>
+          </div>
+          <p className="text-sm text-slate-500 mb-4">
+            Customize your PDF reports with your own branding. Your company name and brand color will replace PagePulse branding in all generated reports.
+          </p>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Company Name</label>
+              <input
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="Your Company Name"
+                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+              <p className="mt-1 text-xs text-slate-400">Appears on the cover page and footer of PDF reports.</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Brand Color</label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={brandColor}
+                  onChange={(e) => setBrandColor(e.target.value)}
+                  className="h-10 w-14 rounded-lg border border-gray-200 cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={brandColor}
+                  onChange={(e) => setBrandColor(e.target.value)}
+                  placeholder="#2563EB"
+                  className="w-32 rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+                <div
+                  className="h-10 flex-1 rounded-xl border border-gray-200"
+                  style={{ backgroundColor: brandColor }}
+                />
+              </div>
+              <p className="mt-1 text-xs text-slate-400">Used for headings and accents in PDF reports.</p>
+            </div>
+
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="rounded-xl bg-primary-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-colors disabled:opacity-60"
+            >
+              {saving ? "Saving..." : "Save Branding"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Plan Section */}
       <div className="rounded-2xl bg-white border border-gray-100 p-6">

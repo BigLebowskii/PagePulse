@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import ScoreCircle from "@/components/ui/ScoreCircle";
 import GradeBadge from "@/components/ui/GradeBadge";
 import ScoreBar from "@/components/ui/ScoreBar";
+import DownloadPdfButton from "@/components/dashboard/DownloadPdfButton";
 
 function gradeFromScore(score: number): string {
   if (score >= 90) return "A";
@@ -92,9 +93,7 @@ export default async function AuditDetailPage({
               <a href={`/dashboard/new-audit?url=${encodeURIComponent(audit.url)}`} className="rounded-lg bg-primary-500 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-600 transition-colors">
                 Re-run Audit
               </a>
-              <button disabled className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-slate-400 cursor-not-allowed">
-                Download PDF (Coming Soon)
-              </button>
+              <DownloadPdfButton auditId={audit.id} />
             </div>
           </div>
         </div>

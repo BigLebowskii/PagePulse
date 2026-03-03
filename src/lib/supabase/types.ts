@@ -76,6 +76,8 @@ export interface Database {
           current_period_end: string | null;
           audits_used_this_month: number;
           audits_limit: number;
+          company_name: string | null;
+          brand_color: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -91,6 +93,8 @@ export interface Database {
           current_period_end?: string | null;
           audits_used_this_month?: number;
           audits_limit?: number;
+          company_name?: string | null;
+          brand_color?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -106,6 +110,8 @@ export interface Database {
           current_period_end?: string | null;
           audits_used_this_month?: number;
           audits_limit?: number;
+          company_name?: string | null;
+          brand_color?: string | null;
           created_at?: string;
           updated_at?: string;
         };
