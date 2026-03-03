@@ -7,7 +7,9 @@ export default function Waitlist() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -21,10 +23,30 @@ export default function Waitlist() {
       return;
     }
 
-    // Log to console for now — will connect Supabase later
-    console.log("Waitlist signup:", email);
-    setSubmitted(true);
-    setEmail("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Something went wrong.");
+        setLoading(false);
+        return;
+      }
+
+      setSubmitted(true);
+      setEmail("");
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -88,7 +110,7 @@ export default function Waitlist() {
               type="submit"
               className="w-full sm:w-auto whitespace-nowrap rounded-xl bg-white px-6 py-3.5 text-sm font-semibold text-primary-700 hover:bg-primary-50 transition-colors shadow-lg"
             >
-              Join Waitlist
+              {loading ? "Joining..." : "Join Waitlist"}
             </button>
           </form>
         )}
